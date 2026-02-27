@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de protection fonctionnelle - PDF</title>
+    <style>
+        /* Configuration de la page pour l'impression */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Marianne", Arial, sans-serif;
+            background-color: #f6f6f6;
+            font-size: 10pt;
+            line-height: 1.3;
+            color: #161616;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 12mm;
+            background-color: #f6f6f6;
+            page-break-after: always;
+            position: relative;
+        }
+
+        .page:last-child {
+            page-break-after: auto;
+        }
+
+        /* En-tête */
+        .header {
+            margin-bottom: 5mm;
+        }
+
+        .page-title {
+            color: #000091;
+            font-size: 18pt;
+            font-weight: 700;
+            margin-bottom: 1.5mm;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            color: #666666;
+            font-size: 10pt;
+            margin-bottom: 0;
+        }
+
+        /* Encarts blancs */
+        .form-card {
+            background: white;
+            padding: 4mm;
+            margin-bottom: 3mm;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e5e5;
+            border-radius: 2px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            color: #000091;
+            border-bottom: 2px solid #000091;
+            padding-bottom: 1.2mm;
+            margin-bottom: 2.5mm;
+            font-size: 11.5pt;
+            font-weight: 700;
+        }
+
+        /* Grille de champs */
+        .field-row {
+            display: flex;
+            gap: 3mm;
+            margin-bottom: 2.5mm;
+        }
+
+        .field-col {
+            flex: 1;
+        }
+
+        .field-col.full {
+            flex: 1 1 100%;
+        }
+
+        .field-col.half {
+            flex: 1 1 48%;
+        }
+
+        .field-col.third {
+            flex: 1 1 31%;
+        }
+
+        .field-group {
+            margin-bottom: 2.5mm;
+        }
+
+        .field-label {
+            font-weight: 600;
+            font-size: 9pt;
+            margin-bottom: 0.7mm;
+            display: block;
+            color: #161616;
+        }
+
+        .field-required {
+            color: #ce0500;
+        }
+
+        .field-box {
+            border: 1px solid #3a3a3a;
+            border-radius: 2px;
+            min-height: 6.5mm;
+            background: white;
+            padding: 1.5mm;
+        }
+
+        .field-box.tall {
+            min-height: 14mm;
+        }
+
+        .field-box.very-tall {
+            min-height: 20mm;
+        }
+
+        .checkbox-group {
+            margin-bottom: 2.5mm;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+            font-size: 9pt;
+        }
+
+        .checkbox-box {
+            width: 4.5mm;
+            height: 4.5mm;
+            border: 1px solid #3a3a3a;
+            border-radius: 1px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .note {
+            color: #666666;
+            font-size: 8pt;
+            font-style: italic;
+            margin-top: 0.8mm;
+            margin-left: 1mm;
+        }
+
+        .alert-box {
+            background-color: #ffe9e6;
+            border-left: 4px solid #ce0500;
+            padding: 2.5mm;
+            margin-bottom: 3mm;
+        }
+
+        .alert-title {
+            font-weight: 700;
+            color: #ce0500;
+            margin-bottom: 1mm;
+            font-size: 10pt;
+        }
+
+        .alert-text {
+            font-size: 9pt;
+            color: #3a3a3a;
+        }
+
+        .info-box {
+            background-color: #e8edff;
+            border-left: 4px solid #000091;
+            padding: 2.5mm;
+            margin-bottom: 3mm;
+            display: flex;
+            gap: 3mm;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-title {
+            font-weight: 700;
+            color: #000091;
+            margin-bottom: 1mm;
+            font-size: 10pt;
+        }
+
+        .info-text {
+            font-size: 8.5pt;
+            color: #3a3a3a;
+            line-height: 1.4;
+        }
+
+        .qr-code {
+            width: 22mm;
+            height: 22mm;
+            flex-shrink: 0;
+            object-fit: contain;
+            align-self: center;
+        }
+
+        a {
+            color: #000091;
+            text-decoration: underline;
+        }
+
+        /* Styles d'impression */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .page {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PAGE 1 -->
+    <div class="page">
+        <!-- En-tête -->
+        <div class="header">
+            <h1 class="page-title">Direction générale de la gendarmerie nationale</h1>
+            <p class="page-subtitle">Demande de protection fonctionnelle</p>
+            <p class="page-subtitle" style="font-size: 8pt; margin-top: 1mm; color: #666; line-height: 1.5;">
+                Art. L. 4123-10 du code de la défense et L. 113-1 du code de la sécurité intérieure pour les militaires<br>
+                Art. L. 134-1 et suivants du code général de la fonction publique pour les personnels civils<br>
+                Dispositif explicité dans la fiche GPRH Astrée 4.7.1.1
+            </p>
+        </div>
+
+        <!-- Procédure -->
+        <div class="info-box">
+            <div class="info-content">
+                <h3 class="info-title">Procédure de demande</h3>
+                <p class="info-text">
+                    Pour effectuer votre demande de protection fonctionnelle, il est recommandé d'utiliser l'application PF accessible au lien suivant : <a href="http://gienat.fr/pEbZb">gienat.fr/pEbZb</a><br><br>
+                    À défaut, vous pouvez remplir le formulaire ci-dessous sur ordinateur (non manuscrit) et l'adresser par courriel à : <a href="mailto:protection-fonctionnelle@gendarmerie.interieur.gouv.fr">protection-fonctionnelle@gendarmerie.interieur.gouv.fr</a> en mettant en copie votre hiérarchie
+                </p>
+            </div>
+            <img src="code-qr.png" alt="QR Code Application PF" class="qr-code">
+        </div>
+
+        <!-- Urgence -->
+        <div class="alert-box">
+            <h3 class="alert-title">En cas d'urgence</h3>
+            <p class="alert-text">
+                En cas d'urgence, notamment en cas d'audience le jour même, vous êtes invités à appeler le greffe du BRPF dans les plus brefs délais aux numéros suivants :<br><br>
+                <strong>01 84 22 28 08 - 01 84 22 28 05</strong>
+            </p>
+        </div>
+
+        <!-- Informations générales -->
+        <div class="form-card">
+            <h2 class="section-title">Informations générales</h2>
+            <div class="field-group">
+                <label class="field-label">Type de demande <span class="field-required">*</span></label>
+                <div class="field-box" data-field="type"></div>
+            </div>
+        </div>
+
+        <!-- Informations sur le demandeur -->
+        <div class="form-card">
+            <h2 class="section-title">Informations sur le demandeur</h2>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Nom <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="nom"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Prénom <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="prenom"></div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Grade ou civilité <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="grade"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">NIGEND</label>
+                    <div class="field-box" data-field="nigend"></div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Statut du demandeur <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="statutDemandeur"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Branche</label>
+                    <div class="field-box" data-field="branche"></div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Formation administrative</label>
+                    <div class="field-box" data-field="formationAdministrative"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Département d'affectation</label>
+                    <div class="field-box" data-field="departement"></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Unité</label>
+                <div class="field-box" data-field="unite"></div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Courriel professionnel <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="emailProfessionnel"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Courriel personnel <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="emailPersonnel"></div>
+                </div>
+            </div>
+            <p class="note">* Au moins une adresse email (professionnelle ou personnelle) est requise</p>
+            <div style="height: 3mm;"></div>
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">TPH professionnel <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="telephoneProfessionnel"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">TPH personnel <span class="field-required">*</span></label>
+                    <div class="field-box" data-field="telephonePersonnel"></div>
+                </div>
+            </div>
+            <p class="note">* Au moins un numéro de téléphone (professionnel ou personnel) est requis</p>
+        </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+        <!-- Informations sur les faits -->
+        <div class="form-card">
+            <h2 class="section-title">Informations sur les faits</h2>
+
+            <div class="field-row">
+                <div class="field-col third">
+                    <label class="field-label">Date des faits</label>
+                    <div class="field-box" data-field="dateFaits"></div>
+                </div>
+                <div class="field-col third">
+                    <label class="field-label">Commune des faits</label>
+                    <div class="field-box" data-field="commune"></div>
+                </div>
+                <div class="field-col third">
+                    <label class="field-label">Code postal des faits</label>
+                    <div class="field-box" data-field="codePostal"></div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Position administrative</label>
+                    <div class="field-box" data-field="position"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Contexte missionnel</label>
+                    <div class="field-box" data-field="contexteMissionnel"></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Qualification de l'infraction</label>
+                <div class="field-box" data-field="qualificationInfraction"></div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Résumé de la situation</label>
+                <div class="field-box very-tall" data-field="resume"></div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Blessures (nombre de jours d'ITT et détail)</label>
+                <div class="field-box tall" data-field="blessures"></div>
+            </div>
+        </div>
+
+        <!-- Informations judiciaires -->
+        <div class="form-card">
+            <h2 class="section-title">Informations judiciaires</h2>
+
+            <div class="checkbox-group">
+                <div class="checkbox-label">
+                    <span class="checkbox-box" data-field="partieCivile"></span>
+                    <span>Constitution de partie civile</span>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-col half">
+                    <label class="field-label">Montant dommages intérêts demandés (€)</label>
+                    <div class="field-box" data-field="montantPartieCivile"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Date d'audience</label>
+                    <div class="field-box" data-field="dateAudience"></div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Qualification pénale susceptible d'être retenue</label>
+                <div class="field-box tall" data-field="qualificationsPenales"></div>
+            </div>
+        </div>
+
+        <!-- Soutiens demandés -->
+        <div class="form-card">
+            <h2 class="section-title">Soutiens demandés</h2>
+            <div class="field-row">
+                <div class="field-col third">
+                    <div class="checkbox-label">
+                        <span class="checkbox-box" data-field="soutienMedical"></span>
+                        <span>Soutien médical</span>
+                    </div>
+                </div>
+                <div class="field-col third">
+                    <div class="checkbox-label">
+                        <span class="checkbox-box" data-field="soutienPsychologique"></span>
+                        <span>Soutien psychologique</span>
+                    </div>
+                </div>
+                <div class="field-col third">
+                    <div class="checkbox-label">
+                        <span class="checkbox-box" data-field="soutienSocial"></span>
+                        <span>Soutien social</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protection des données -->
+        <div class="form-card">
+            <h2 class="section-title">Protection des données</h2>
+            <div class="checkbox-group">
+                <div class="checkbox-label">
+                    <span class="checkbox-box" data-field="rgpdConsent"></span>
+                    <span>Je confirme avoir pris connaissance des modalités de traitement de mes données personnelles (voir page suivante) <span class="field-required">*</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Engagement de responsabilité -->
+        <div class="form-card" style="margin-bottom: 0;">
+            <h2 class="section-title">Engagement de responsabilité</h2>
+            <div class="checkbox-group" style="margin-bottom: 2mm;">
+                <div class="checkbox-label">
+                    <span class="checkbox-box" data-field="engagementHonneur"></span>
+                    <span>Je certifie sur l'honneur l'exactitude des renseignements fournis dans cette demande. <span class="field-required">*</span></span>
+                </div>
+            </div>
+            <div class="field-row" style="margin-bottom: 0;">
+                <div class="field-col half">
+                    <label class="field-label">Prénom et nom</label>
+                    <div class="field-box" data-field="signatureNom"></div>
+                </div>
+                <div class="field-col half">
+                    <label class="field-label">Date</label>
+                    <div class="field-box" data-field="signatureDate"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3 - RGPD -->
+    <div class="page">
+        <div class="form-card">
+            <h2 class="section-title">Protection des données personnelles (RGPD)</h2>
+
+            <div style="text-align: justify; line-height: 1.5; font-size: 9pt;">
+                <p style="margin-bottom: 3mm;">
+                    Les informations recueillies sur ce formulaire sont enregistrées dans un fichier informatisé par la sous-direction de l'accompagnement du personnel - bureau des recours et de la protection fonctionnelle pour assurer le suivi de la prise en charge des dossiers de protection fonctionnelle de la gendarmerie nationale afin de fournir un accompagnement juridique aux militaires victimes d'infractions pénales volontaires ou mis en cause en raison de leur qualité, ainsi que de leurs ayants droit. La base légale du traitement est l'obligation légale (art. L.4123-10 du code de la défense, art. L.113-1 du code de la sécurité intérieure et art. L.134-1 à L.134-12 du code général de la fonction publique).
+                </p>
+
+                <p style="margin-bottom: 3mm;">
+                    Les données marquées par un astérisque dans le formulaire doivent obligatoirement être fournies. Dans le cas contraire, le formulaire ne pourra pas être soumis.
+                </p>
+
+                <p style="margin-bottom: 3mm;">
+                    Les données collectées seront communiquées aux seuls destinataires suivants : les personnels du bureau des recours et de la protection fonctionnelle et des formations administratives de rattachement du demandeur, les avocats désignés par les militaires, ainsi que les organismes payeurs (secrétariats généraux pour l'administration du ministère de l'Intérieur - SGAMI - et services administratifs et techniques de la police nationale - SATPN).
+                </p>
+
+                <p style="margin-bottom: 3mm;">
+                    Les données sont conservées le temps de la procédure judiciaire ou civile, jusqu'à l'indemnisation complète des demandeurs et au règlement pour les avocats.
+                </p>
+
+                <p style="margin-bottom: 3mm;">
+                    Vous pouvez accéder aux données vous concernant, les rectifier ou exercer votre droit à la limitation du traitement.
+                </p>
+
+                <p style="margin-bottom: 3mm;">
+                    Consultez le site de la CNIL (<a href="http://www.cnil.fr/">cnil.fr</a>) pour plus d'informations sur vos droits.
+                </p>
+
+                <p style="margin-bottom: 3mm;">
+                    Pour exercer ces droits ou pour toute question sur le traitement de vos données dans ce dispositif, vous pouvez contacter le bureau des recours et de la protection fonctionnelle : brpf.sdap.dggn@gendarmerie.interieur.gouv.fr ou par voie postale : 4, rue Claude Bernard, CS 60003, 92130 ISSY-LES-MOULINEAUX CEDEX.
+                </p>
+
+                <p style="margin-bottom: 0;">
+                    Si vous estimez, après nous avoir contactés, que vos droits « Informatique et Libertés » ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

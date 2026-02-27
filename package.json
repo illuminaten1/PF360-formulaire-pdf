@@ -1,0 +1,12 @@
+{
+  "name": "formulaire-appli-pf",
+  "version": "1.0.0",
+  "description": "Générateur de PDF interactif — Formulaire de Protection Fonctionnelle",
+  "scripts": {
+    "generate": "node generate-pdf-form.js"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "puppeteer": "^22.0.0"
+  }
+}
