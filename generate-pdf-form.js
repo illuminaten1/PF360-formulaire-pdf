@@ -26,34 +26,6 @@ const OUTPUT = process.argv[2] || path.join(__dirname, 'formulaire-pf-interactif
 const PDF_W = 595.28;
 const PDF_H = 841.89;
 
-// ── Aide bas-niveau : ajout d'actions JavaScript ──────────────────────────────
-
-function addAction(pdfDoc, rawDict, eventKey, jsCode) {
-    const action = pdfDoc.context.obj({
-        S:  PDFName.of('JavaScript'),
-        JS: PDFString.of(jsCode),
-    });
-    const existing = rawDict.get(PDFName.of('AA'));
-    let aaDict;
-    if (existing) {
-        aaDict = pdfDoc.context.lookup(existing);
-    } else {
-        aaDict = pdfDoc.context.obj({});
-        rawDict.set(PDFName.of('AA'), pdfDoc.context.register(aaDict));
-    }
-    aaDict.set(PDFName.of(eventKey), pdfDoc.context.register(action));
-}
-
-// Action sur le dict du champ  (Validate='V', Keystroke='K', Format='F')
-const onField  = (doc, f, k, js) => addAction(doc, f.acroField.dict, k, js);
-
-// Action sur le dict du widget  (MouseUp='U') — checkboxes
-const onWidget = (doc, f, k, js) => {
-    const widgets = f.acroField.getWidgets();
-    const dict = widgets.length > 0 ? widgets[0].dict : f.acroField.dict;
-    addAction(doc, dict, k, js);
-};
-
 // ── Options combobox avec label ≠ valeur d'export ────────────────────────────
 function setItems(pdfDoc, dropdown, items) {
     const arr = PDFArray.withContext(pdfDoc.context);
@@ -69,292 +41,6 @@ function setItems(pdfDoc, dropdown, items) {
     }
     dropdown.acroField.dict.set(PDFName.of('Opt'), arr);
 }
-
-// ── Scripts de validation (verbatim depuis acrobat-add-fields.js) ─────────────
-const V = {
-    ksUpper: "event.change = event.change.toUpperCase();",
-    ksLower: "event.change = event.change.toLowerCase();",
-    fmtDate:     'AFDate_FormatEx("dd/mm/yyyy");',
-    ksDate:      'AFDate_KeystrokeEx("dd/mm/yyyy");',
-    fmtDateTime: 'AFDate_FormatEx("dd/mm/yyyy HH:MM");',
-    ksDateTime:  'AFDate_KeystrokeEx("dd/mm/yyyy HH:MM");',
-
-    nom: [
-        "(function () {",
-        "    event.value = event.value.toUpperCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { app.alert(\"Le nom est obligatoire.\", 1); event.rc = false; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length > 100) { app.alert(\"Le nom ne peut pas d\u00e9passer 100 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (!/^[a-zA-Z\u00C0-\u024F\\s'\\-]+$/.test(value)) { app.alert(\"Le nom contient des caract\u00e8res non autoris\u00e9s.\\nCaract\u00e8res autoris\u00e9s : lettres, espaces, apostrophes, tirets.\", 1); event.rc = false; return; }",
-        "    if (/(.)\\1{3,}/.test(value)) { app.alert(\"Le nom ne peut pas contenir 4 caract\u00e8res identiques cons\u00e9cutifs.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    prenom: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { app.alert(\"Le pr\u00e9nom est obligatoire.\", 1); event.rc = false; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length > 100) { app.alert(\"Le pr\u00e9nom ne peut pas d\u00e9passer 100 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (!/^[a-zA-Z\u00C0-\u024F\\s'\\-]+$/.test(value)) { app.alert(\"Le pr\u00e9nom contient des caract\u00e8res non autoris\u00e9s.\\nCaract\u00e8res autoris\u00e9s : lettres, espaces, apostrophes, tirets.\", 1); event.rc = false; return; }",
-        "    if (/(.)\\1{3,}/.test(value)) { app.alert(\"Le pr\u00e9nom ne peut pas contenir 4 caract\u00e8res identiques cons\u00e9cutifs.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    nigend: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    if (!/^[0-9]+$/.test(value)) { app.alert(\"Le NIGEND ne doit contenir que des chiffres.\", 1); event.rc = false; return; }",
-        "    if (value.length < 5 || value.length > 6) { app.alert(\"Le NIGEND doit contenir entre 5 et 6 chiffres.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    unite: [
-        "(function () {",
-        "    event.value = event.value.toUpperCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length < 2) { app.alert(\"L'unit\u00e9 doit contenir au moins 2 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (value.length > 255) { app.alert(\"L'unit\u00e9 ne peut pas d\u00e9passer 255 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (!/^[a-zA-Z\u00C0-\u024F0-9\\s'\\-\\/().]+$/.test(value)) { app.alert(\"L'unit\u00e9 contient des caract\u00e8res non autoris\u00e9s.\\nCaract\u00e8res autoris\u00e9s : lettres, chiffres, espaces, apostrophes, tirets, slashs, parenth\u00e8ses, points.\", 1); event.rc = false; return; }",
-        "    if (/(.)\\1{3,}/.test(value)) { app.alert(\"L'unit\u00e9 ne peut pas contenir 4 caract\u00e8res identiques cons\u00e9cutifs.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    emailPro: [
-        "(function () {",
-        "    event.value = event.value.toLowerCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    var emailPerso = this.getField(\"emailPersonnel\").value.toLowerCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    if (value.length === 0 && emailPerso.length === 0) { app.alert(\"Au moins une adresse courriel (professionnelle ou personnelle) est requise.\", 1); event.rc = false; return; }",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    if (value.length > 254) { app.alert(\"L'adresse courriel ne peut pas d\u00e9passer 254 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    var emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._+\\-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.\\-]*[a-zA-Z0-9])?\\.[a-zA-Z]{2,}$/;",
-        "    if (!emailRegex.test(value)) { app.alert(\"Le courriel professionnel n'est pas valide.\\nExemple attendu : prenom.nom@gendarmerie.interieur.gouv.fr\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    emailPerso: [
-        "(function () {",
-        "    event.value = event.value.toLowerCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    if (value.length > 254) { app.alert(\"L'adresse courriel ne peut pas d\u00e9passer 254 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    var emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._+\\-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.\\-]*[a-zA-Z0-9])?\\.[a-zA-Z]{2,}$/;",
-        "    if (!emailRegex.test(value)) { app.alert(\"Le courriel personnel n'est pas valide.\\nExemple attendu : prenom.nom@exemple.fr\", 1); event.rc = false; return; }",
-        "    var emailPro = this.getField(\"emailProfessionnel\").value.toLowerCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    if (emailPro.length > 0 && emailPro === value) { app.alert(\"Les adresses courriel professionnelle et personnelle doivent \u00eatre diff\u00e9rentes.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    telPro: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    var telPerso = this.getField(\"telephonePersonnel\").value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    if (value.length === 0 && telPerso.length === 0) { app.alert(\"Au moins un num\u00e9ro de t\u00e9l\u00e9phone (professionnel ou personnel) est requis.\", 1); event.rc = false; return; }",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var clean = value.replace(/[\\s.\\-()]/g, \"\");",
-        "    if (clean.charAt(0) === \"+\") clean = clean.substring(1);",
-        "    if (!/^\\d+$/.test(clean)) { app.alert(\"Le num\u00e9ro de t\u00e9l\u00e9phone professionnel contient des caract\u00e8res non autoris\u00e9s.\", 1); event.rc = false; return; }",
-        "    if (clean.length === 13 && clean.substring(0,4) === \"0033\") { clean = \"0\" + clean.substring(4); }",
-        "    else if (clean.substring(0,2) === \"33\" && clean.length === 11) { clean = \"0\" + clean.substring(2); }",
-        "    var valid = false;",
-        "    if (clean.charAt(0) === \"0\") { valid = clean.length === 10; }",
-        "    else if (clean.substring(0,2) === \"33\") { valid = clean.length === 11; }",
-        "    else if (clean.substring(0,3) === \"687\" || clean.substring(0,3) === \"689\" || clean.substring(0,3) === \"681\" || clean.substring(0,3) === \"508\") { valid = clean.length === 6 || clean.length === 9; }",
-        "    else { valid = clean.length >= 7 && clean.length <= 15; }",
-        "    if (!valid) { app.alert(\"Le num\u00e9ro de t\u00e9l\u00e9phone professionnel est invalide.\\nExemple attendu : 0612345678 ou +33612345678\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    telPerso: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var clean = value.replace(/[\\s.\\-()]/g, \"\");",
-        "    if (clean.charAt(0) === \"+\") clean = clean.substring(1);",
-        "    if (!/^\\d+$/.test(clean)) { app.alert(\"Le num\u00e9ro de t\u00e9l\u00e9phone personnel contient des caract\u00e8res non autoris\u00e9s.\", 1); event.rc = false; return; }",
-        "    if (clean.length === 13 && clean.substring(0,4) === \"0033\") { clean = \"0\" + clean.substring(4); }",
-        "    else if (clean.substring(0,2) === \"33\" && clean.length === 11) { clean = \"0\" + clean.substring(2); }",
-        "    var valid = false;",
-        "    if (clean.charAt(0) === \"0\") { valid = clean.length === 10; }",
-        "    else if (clean.substring(0,2) === \"33\") { valid = clean.length === 11; }",
-        "    else if (clean.substring(0,3) === \"687\" || clean.substring(0,3) === \"689\" || clean.substring(0,3) === \"681\" || clean.substring(0,3) === \"508\") { valid = clean.length === 6 || clean.length === 9; }",
-        "    else { valid = clean.length >= 7 && clean.length <= 15; }",
-        "    if (!valid) { app.alert(\"Le num\u00e9ro de t\u00e9l\u00e9phone personnel est invalide.\\nExemple attendu : 0612345678 ou +33612345678\", 1); event.rc = false; return; }",
-        "    var cleanPro = this.getField(\"telephoneProfessionnel\").value.replace(/[\\s.\\-()]/g, \"\");",
-        "    if (cleanPro.charAt(0) === \"+\") cleanPro = cleanPro.substring(1);",
-        "    if (cleanPro.length > 0 && cleanPro === clean) { app.alert(\"Les num\u00e9ros de t\u00e9l\u00e9phone professionnel et personnel doivent \u00eatre diff\u00e9rents.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    dateFaits: [
-        "(function () {",
-        "    var value = event.value;",
-        "    if (!value || value.length === 0) { event.rc = true; return; }",
-        "    var parts = value.split(\"/\");",
-        "    if (parts.length !== 3) { event.rc = true; return; }",
-        "    var d = new Date(parseInt(parts[2],10), parseInt(parts[1],10)-1, parseInt(parts[0],10));",
-        "    var today = new Date(); today.setHours(0,0,0,0);",
-        "    if (d > today) { app.alert(\"La date des faits ne peut pas \u00eatre dans le futur.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    commune: [
-        "(function () {",
-        "    event.value = event.value.toUpperCase().replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length < 2) { app.alert(\"La commune doit contenir au moins 2 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (value.length > 100) { app.alert(\"La commune ne peut pas d\u00e9passer 100 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (!/^[a-zA-Z\u00C0-\u024F\\s'\\-]+$/.test(value)) { app.alert(\"La commune contient des caract\u00e8res non autoris\u00e9s.\\nCaract\u00e8res autoris\u00e9s : lettres, espaces, apostrophes, tirets.\", 1); event.rc = false; return; }",
-        "    if (/(.)\\1{3,}/.test(value)) { app.alert(\"La commune ne peut pas contenir 4 caract\u00e8res identiques cons\u00e9cutifs.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    codePostal: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    if (!/^((0[1-9]|[1-8][0-9]|9[0-5])[0-9]{3}|97[1-8][0-9]{2}|98[6-8][0-9]{2})$/.test(value)) { app.alert(\"Code postal invalide (m\u00e9tropole ou DOM-TOM uniquement).\\nExemples : 75001, 97100, 98600\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    resume: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length > 5000) { app.alert(\"Le r\u00e9sum\u00e9 de la situation ne peut pas d\u00e9passer 5000 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    blessures: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length > 2000) { app.alert(\"Les blessures ne peuvent pas d\u00e9passer 2000 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    partieCivileMouseUp: [
-        "(function () {",
-        "    var montant = this.getField(\"montantPartieCivile\");",
-        "    if (this.getField(\"partieCivile\").value === \"Off\") {",
-        "        montant.value = \"\"; montant.readonly = true;",
-        "    } else { montant.readonly = false; }",
-        "})();"
-    ].join("\n"),
-
-    montantPartieCivile: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    var isChecked = (this.getField(\"partieCivile\").value !== \"Off\");",
-        "    if (!isChecked) { if (value.length > 0) { app.alert(\"Le montant ne peut \u00eatre renseign\u00e9 que si la constitution de partie civile est coch\u00e9e.\", 1); event.rc = false; return; } event.rc = true; return; }",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    if (!/^\\d+$/.test(value)) { app.alert(\"Le montant doit \u00eatre un nombre entier positif (sans d\u00e9cimales).\", 1); event.rc = false; return; }",
-        "    var montant = parseInt(value, 10);",
-        "    if (isNaN(montant) || montant < 0) { app.alert(\"Le montant doit \u00eatre un nombre entier positif.\", 1); event.rc = false; return; }",
-        "    if (montant > 999999999) { app.alert(\"Le montant est trop \u00e9lev\u00e9 (maximum : 999\u202f999\u202f999).\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    dateAudienceDate: [
-        "(function () {",
-        "    var value = event.value;",
-        "    if (!value || value.length === 0) { event.rc = true; return; }",
-        "    var parts = value.split(\"/\");",
-        "    if (parts.length !== 3) { event.rc = true; return; }",
-        "    var d = new Date(parseInt(parts[2],10), parseInt(parts[1],10)-1, parseInt(parts[0],10));",
-        "    if (d.getFullYear() !== parseInt(parts[2],10) || d.getMonth() !== parseInt(parts[1],10)-1 || d.getDate() !== parseInt(parts[0],10)) { app.alert(\"La date d'audience est invalide.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    timeHHMM: [
-        "(function () {",
-        "    var value = event.value;",
-        "    if (!value || value.length === 0) { event.rc = true; return; }",
-        "    if (!/^\\d{2}:\\d{2}$/.test(value)) { app.alert(\"Format invalide.\\nFormat attendu : HH:MM (ex. : 14:30)\", 1); event.rc = false; return; }",
-        "    var parts = value.split(\":\");",
-        "    var hours = parseInt(parts[0],10), mins = parseInt(parts[1],10);",
-        "    if (hours > 23 || mins > 59) { app.alert(\"L'heure est invalide (heures : 00-23, minutes : 00-59).\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    qualPenales: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { event.rc = true; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length > 2000) { app.alert(\"Les qualifications p\u00e9nales ne peuvent pas d\u00e9passer 2000 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    signatureNom: [
-        "(function () {",
-        "    event.value = event.value.replace(/^\\s+|\\s+$/g, \"\");",
-        "    var value = event.value;",
-        "    if (value.length === 0) { app.alert(\"Le pr\u00e9nom et nom sont obligatoires.\", 1); event.rc = false; return; }",
-        "    var reps = [[/\u2018/g,\"'\"],[/\u2019/g,\"'\"],[/\u201B/g,\"'\"],[/\u201A/g,\"'\"],[/\u2032/g,\"'\"],[/\u2013/g,\"-\"],[/\u2014/g,\"-\"],[/\u2011/g,\"-\"],[/\u2212/g,\"-\"],[/\u00A0/g,\" \"],[/\u2009/g,\" \"],[/\u202F/g,\" \"]];",
-        "    for (var i = 0; i < reps.length; i++) value = value.replace(reps[i][0], reps[i][1]);",
-        "    if (value.length < 2) { app.alert(\"Le pr\u00e9nom et nom doivent contenir au moins 2 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (value.length > 100) { app.alert(\"Le pr\u00e9nom et nom ne peuvent pas d\u00e9passer 100 caract\u00e8res.\", 1); event.rc = false; return; }",
-        "    if (!/^[a-zA-Z\u00C0-\u024F\\s'\\-]+$/.test(value)) { app.alert(\"Le pr\u00e9nom et nom contiennent des caract\u00e8res non autoris\u00e9s.\\nCaract\u00e8res autoris\u00e9s : lettres, espaces, apostrophes, tirets.\", 1); event.rc = false; return; }",
-        "    if (/(.)\\1{3,}/.test(value)) { app.alert(\"Le pr\u00e9nom et nom ne peuvent pas contenir 4 caract\u00e8res identiques cons\u00e9cutifs.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-
-    signatureDate: [
-        "(function () {",
-        "    var value = event.value;",
-        "    if (!value || value.length === 0) { event.rc = true; return; }",
-        "    var parts = value.split(\"/\");",
-        "    if (parts.length !== 3) { event.rc = true; return; }",
-        "    var d = new Date(parseInt(parts[2],10), parseInt(parts[1],10)-1, parseInt(parts[0],10));",
-        "    if (d.getFullYear() !== parseInt(parts[2],10) || d.getMonth() !== parseInt(parts[1],10)-1 || d.getDate() !== parseInt(parts[0],10)) { app.alert(\"La date de signature est invalide.\", 1); event.rc = false; return; }",
-        "    event.rc = true;",
-        "})();"
-    ].join("\n"),
-};
 
 // =============================================================================
 // GÉNÉRATION
@@ -441,8 +127,6 @@ async function main() {
     form.acroForm.dict.set(PDFName.of('NeedAppearances'), pdfDoc.context.obj(true));
 
     // Raccourci pour placer un champ sur la bonne page aux coordonnées mesurées
-    const pg1 = pages[0];
-    const pg2 = pages[1];
     const pageOf = name => pages[pos[name].page];
     const at     = name => {
         const p = pos[name];
@@ -472,13 +156,10 @@ async function main() {
     const fNom = form.createTextField('nom');
     fNom.addToPage(pageOf('nom'), { ...at('nom'), ...S });
     fNom.enableRequired();
-    onField(pdfDoc, fNom, 'K', V.ksUpper);
-    onField(pdfDoc, fNom, 'V', V.nom);
 
     const fPrenom = form.createTextField('prenom');
     fPrenom.addToPage(pageOf('prenom'), { ...at('prenom'), ...S });
     fPrenom.enableRequired();
-    onField(pdfDoc, fPrenom, 'V', V.prenom);
 
     const fGrade = form.createDropdown('grade');
     fGrade.addToPage(pageOf('grade'), { ...at('grade'), ...S });
@@ -501,7 +182,6 @@ async function main() {
 
     const fNigend = form.createTextField('nigend');
     fNigend.addToPage(pageOf('nigend'), { ...at('nigend'), ...S });
-    onField(pdfDoc, fNigend, 'V', V.nigend);
 
     const fStatut = form.createDropdown('statutDemandeur');
     fStatut.addToPage(pageOf('statutDemandeur'), { ...at('statutDemandeur'), ...S });
@@ -560,26 +240,18 @@ async function main() {
 
     const fUnite = form.createTextField('unite');
     fUnite.addToPage(pageOf('unite'), { ...at('unite'), ...S });
-    onField(pdfDoc, fUnite, 'K', V.ksUpper);
-    onField(pdfDoc, fUnite, 'V', V.unite);
 
     const fEmailPro = form.createTextField('emailProfessionnel');
     fEmailPro.addToPage(pageOf('emailProfessionnel'), { ...at('emailProfessionnel'), ...S });
-    onField(pdfDoc, fEmailPro, 'K', V.ksLower);
-    onField(pdfDoc, fEmailPro, 'V', V.emailPro);
 
     const fEmailPerso = form.createTextField('emailPersonnel');
     fEmailPerso.addToPage(pageOf('emailPersonnel'), { ...at('emailPersonnel'), ...S });
-    onField(pdfDoc, fEmailPerso, 'K', V.ksLower);
-    onField(pdfDoc, fEmailPerso, 'V', V.emailPerso);
 
     const fTelPro = form.createTextField('telephoneProfessionnel');
     fTelPro.addToPage(pageOf('telephoneProfessionnel'), { ...at('telephoneProfessionnel'), ...S });
-    onField(pdfDoc, fTelPro, 'V', V.telPro);
 
     const fTelPerso = form.createTextField('telephonePersonnel');
     fTelPerso.addToPage(pageOf('telephonePersonnel'), { ...at('telephonePersonnel'), ...S });
-    onField(pdfDoc, fTelPerso, 'V', V.telPerso);
 
     // ════════════════════════════════════════════════════════════════════════
     // PAGE 2
@@ -587,18 +259,12 @@ async function main() {
 
     const fDateFaits = form.createTextField('dateFaits');
     fDateFaits.addToPage(pageOf('dateFaits'), { ...at('dateFaits'), ...S });
-    onField(pdfDoc, fDateFaits, 'F', V.fmtDate);
-    onField(pdfDoc, fDateFaits, 'K', V.ksDate);
-    onField(pdfDoc, fDateFaits, 'V', V.dateFaits);
 
     const fCommune = form.createTextField('commune');
     fCommune.addToPage(pageOf('commune'), { ...at('commune'), ...S });
-    onField(pdfDoc, fCommune, 'K', V.ksUpper);
-    onField(pdfDoc, fCommune, 'V', V.commune);
 
     const fCP = form.createTextField('codePostal');
     fCP.addToPage(pageOf('codePostal'), { ...at('codePostal'), ...S });
-    onField(pdfDoc, fCP, 'V', V.codePostal);
 
     const fPosition = form.createDropdown('position');
     fPosition.addToPage(pageOf('position'), { ...at('position'), ...S });
@@ -645,36 +311,26 @@ async function main() {
     const fResume = form.createTextField('resume');
     fResume.enableMultiline();
     fResume.addToPage(pageOf('resume'), { ...at('resume'), ...S });
-    onField(pdfDoc, fResume, 'V', V.resume);
 
     const fBless = form.createTextField('blessures');
     fBless.enableMultiline();
     fBless.addToPage(pageOf('blessures'), { ...at('blessures'), ...S });
-    onField(pdfDoc, fBless, 'V', V.blessures);
 
     const fPC = form.createCheckBox('partieCivile');
     fPC.addToPage(pageOf('partieCivile'), { ...at('partieCivile'), ...S });
-    onWidget(pdfDoc, fPC, 'U', V.partieCivileMouseUp);
 
     const fMontant = form.createTextField('montantPartieCivile');
     fMontant.addToPage(pageOf('montantPartieCivile'), { ...at('montantPartieCivile'), ...S });
-    fMontant.enableReadOnly();
-    onField(pdfDoc, fMontant, 'V', V.montantPartieCivile);
 
     const fDateAudDate = form.createTextField('dateAudienceDate');
     fDateAudDate.addToPage(pageOf('dateAudienceDate'), { ...at('dateAudienceDate'), ...S });
-    onField(pdfDoc, fDateAudDate, 'F', V.fmtDate);
-    onField(pdfDoc, fDateAudDate, 'K', V.ksDate);
-    onField(pdfDoc, fDateAudDate, 'V', V.dateAudienceDate);
 
     const fDateAudTime = form.createTextField('dateAudienceTime');
     fDateAudTime.addToPage(pageOf('dateAudienceTime'), { ...at('dateAudienceTime'), ...S });
-    onField(pdfDoc, fDateAudTime, 'V', V.timeHHMM);
 
     const fQualPen = form.createTextField('qualificationsPenales');
     fQualPen.enableMultiline();
     fQualPen.addToPage(pageOf('qualificationsPenales'), { ...at('qualificationsPenales'), ...S });
-    onField(pdfDoc, fQualPen, 'V', V.qualPenales);
 
     const fSoutMed = form.createCheckBox('soutienMedical');
     fSoutMed.addToPage(pageOf('soutienMedical'), { ...at('soutienMedical'), ...S });
@@ -696,13 +352,9 @@ async function main() {
     const fSignNom = form.createTextField('signatureNom');
     fSignNom.addToPage(pageOf('signatureNom'), { ...at('signatureNom'), ...S });
     fSignNom.enableRequired();
-    onField(pdfDoc, fSignNom, 'V', V.signatureNom);
 
     const fSignDate = form.createTextField('signatureDate');
     fSignDate.addToPage(pageOf('signatureDate'), { ...at('signatureDate'), ...S });
-    onField(pdfDoc, fSignDate, 'F', V.fmtDate);
-    onField(pdfDoc, fSignDate, 'K', V.ksDate);
-    onField(pdfDoc, fSignDate, 'V', V.signatureDate);
 
     // Pré-remplissage de la date du jour
     const now = new Date();
