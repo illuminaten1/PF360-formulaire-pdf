@@ -292,16 +292,26 @@ const V = {
         "})();"
     ].join("\n"),
 
-    dateAudience: [
+    dateAudienceDate: [
         "(function () {",
         "    var value = event.value;",
         "    if (!value || value.length === 0) { event.rc = true; return; }",
-        "    if (!/^\\d{2}\\/\\d{2}\\/\\d{4} \\d{2}:\\d{2}$/.test(value)) { app.alert(\"Format invalide.\\nFormat attendu : JJ/MM/AAAA HH:MM (ex. : 25/01/2024 14:30)\", 1); event.rc = false; return; }",
-        "    var dp = value.substring(0,10).split(\"/\"); var tp = value.substring(11).split(\":\");",
-        "    var hours = parseInt(tp[0],10), mins = parseInt(tp[1],10);",
+        "    var parts = value.split(\"/\");",
+        "    if (parts.length !== 3) { event.rc = true; return; }",
+        "    var d = new Date(parseInt(parts[2],10), parseInt(parts[1],10)-1, parseInt(parts[0],10));",
+        "    if (d.getFullYear() !== parseInt(parts[2],10) || d.getMonth() !== parseInt(parts[1],10)-1 || d.getDate() !== parseInt(parts[0],10)) { app.alert(\"La date d'audience est invalide.\", 1); event.rc = false; return; }",
+        "    event.rc = true;",
+        "})();"
+    ].join("\n"),
+
+    timeHHMM: [
+        "(function () {",
+        "    var value = event.value;",
+        "    if (!value || value.length === 0) { event.rc = true; return; }",
+        "    if (!/^\\d{2}:\\d{2}$/.test(value)) { app.alert(\"Format invalide.\\nFormat attendu : HH:MM (ex. : 14:30)\", 1); event.rc = false; return; }",
+        "    var parts = value.split(\":\");",
+        "    var hours = parseInt(parts[0],10), mins = parseInt(parts[1],10);",
         "    if (hours > 23 || mins > 59) { app.alert(\"L'heure est invalide (heures : 00-23, minutes : 00-59).\", 1); event.rc = false; return; }",
-        "    var d = new Date(parseInt(dp[2],10), parseInt(dp[1],10)-1, parseInt(dp[0],10));",
-        "    if (d.getFullYear() !== parseInt(dp[2],10) || d.getMonth() !== parseInt(dp[1],10)-1 || d.getDate() !== parseInt(dp[0],10)) { app.alert(\"La date est invalide.\", 1); event.rc = false; return; }",
         "    event.rc = true;",
         "})();"
     ].join("\n"),
@@ -651,11 +661,15 @@ async function main() {
     fMontant.enableReadOnly();
     onField(pdfDoc, fMontant, 'V', V.montantPartieCivile);
 
-    const fDateAud = form.createTextField('dateAudience');
-    fDateAud.addToPage(pageOf('dateAudience'), { ...at('dateAudience'), ...S });
-    onField(pdfDoc, fDateAud, 'F', V.fmtDateTime);
-    onField(pdfDoc, fDateAud, 'K', V.ksDateTime);
-    onField(pdfDoc, fDateAud, 'V', V.dateAudience);
+    const fDateAudDate = form.createTextField('dateAudienceDate');
+    fDateAudDate.addToPage(pageOf('dateAudienceDate'), { ...at('dateAudienceDate'), ...S });
+    onField(pdfDoc, fDateAudDate, 'F', V.fmtDate);
+    onField(pdfDoc, fDateAudDate, 'K', V.ksDate);
+    onField(pdfDoc, fDateAudDate, 'V', V.dateAudienceDate);
+
+    const fDateAudTime = form.createTextField('dateAudienceTime');
+    fDateAudTime.addToPage(pageOf('dateAudienceTime'), { ...at('dateAudienceTime'), ...S });
+    onField(pdfDoc, fDateAudTime, 'V', V.timeHHMM);
 
     const fQualPen = form.createTextField('qualificationsPenales');
     fQualPen.enableMultiline();

@@ -328,29 +328,34 @@
                 <div class="field-box" data-field="unite"></div>
             </div>
 
-            <div class="field-row">
-                <div class="field-col half">
-                    <label class="field-label">Courriel professionnel <span class="field-required">*</span></label>
-                    <div class="field-box" data-field="emailProfessionnel"></div>
-                </div>
-                <div class="field-col half">
-                    <label class="field-label">Courriel personnel <span class="field-required">*</span></label>
-                    <div class="field-box" data-field="emailPersonnel"></div>
-                </div>
-            </div>
-            <p class="note">* Au moins une adresse email (professionnelle ou personnelle) est requise</p>
-            <div style="height: 3mm;"></div>
-            <div class="field-row">
-                <div class="field-col half">
-                    <label class="field-label">TPH professionnel <span class="field-required">*</span></label>
-                    <div class="field-box" data-field="telephoneProfessionnel"></div>
-                </div>
-                <div class="field-col half">
-                    <label class="field-label">TPH personnel <span class="field-required">*</span></label>
-                    <div class="field-box" data-field="telephonePersonnel"></div>
+            <div class="field-group">
+                <label class="field-label">Adresse courriel <span class="field-required">*</span></label>
+                <p class="note" style="margin-top: 0; margin-bottom: 1.5mm;">Au moins une adresse (professionnelle ou personnelle) est requise</p>
+                <div class="field-row" style="margin-bottom: 0;">
+                    <div class="field-col half">
+                        <label class="field-label" style="font-weight: normal;">Courriel professionnel</label>
+                        <div class="field-box" data-field="emailProfessionnel"></div>
+                    </div>
+                    <div class="field-col half">
+                        <label class="field-label" style="font-weight: normal;">Courriel personnel</label>
+                        <div class="field-box" data-field="emailPersonnel"></div>
+                    </div>
                 </div>
             </div>
-            <p class="note">* Au moins un numéro de téléphone (professionnel ou personnel) est requis</p>
+            <div class="field-group">
+                <label class="field-label">Numéro de téléphone <span class="field-required">*</span></label>
+                <p class="note" style="margin-top: 0; margin-bottom: 1.5mm;">Au moins un numéro (professionnel ou personnel) est requis</p>
+                <div class="field-row" style="margin-bottom: 0;">
+                    <div class="field-col half">
+                        <label class="field-label" style="font-weight: normal;">TPH professionnel</label>
+                        <div class="field-box" data-field="telephoneProfessionnel"></div>
+                    </div>
+                    <div class="field-col half">
+                        <label class="field-label" style="font-weight: normal;">TPH personnel</label>
+                        <div class="field-box" data-field="telephonePersonnel"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -420,7 +425,14 @@
                 </div>
                 <div class="field-col half">
                     <label class="field-label">Date d'audience</label>
-                    <div class="field-box" data-field="dateAudience"></div>
+                    <div class="field-row" style="margin-bottom: 0; gap: 2mm;">
+                        <div class="field-col">
+                            <div class="field-box" data-field="dateAudienceDate"></div>
+                        </div>
+                        <div class="field-col" style="flex: 0 0 auto; width: 22mm;">
+                            <div class="field-box" data-field="dateAudienceTime"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
