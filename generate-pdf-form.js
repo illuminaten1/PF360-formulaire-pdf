@@ -310,11 +310,11 @@ async function main() {
 
     const fResume = form.createTextField('resume');
     fResume.enableMultiline();
-    fResume.addToPage(pageOf('resume'), { ...at('resume'), ...S });
+    fResume.addToPage(pageOf('resume'), { ...at('resume'), ...S, fontSize: 5 });
 
     const fBless = form.createTextField('blessures');
     fBless.enableMultiline();
-    fBless.addToPage(pageOf('blessures'), { ...at('blessures'), ...S });
+    fBless.addToPage(pageOf('blessures'), { ...at('blessures'), ...S, fontSize: 5 });
 
     const fPC = form.createCheckBox('partieCivile');
     fPC.addToPage(pageOf('partieCivile'), { ...at('partieCivile'), ...S });
